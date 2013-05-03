@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">ActivityRecorder</string>
+    <string name="menu_settings">Settings</string>
+    <string name="hello_world">Hello world!</string>
+    
+    
+	<string name="startRecordButton">Start rec</string>
+	<string name="stopRecordButton">Stop rec</string>
+	
+	<string name="saveDataButton">Save data</string>
+	<string name="uploadDataButton">Upload data</string>
+	<string name="eraseDataButton">Erase data</string>
+	
+	<string name="staticStatusText">Status:</string>
+	<string name="statusText">TBD</string>
+	
+	<string name="radioButtonWalking">Walking</string>
+	<string name="radioButtonSitting">Sitting</string>
+	<string name="radioButtonStairsUp">Stairs up</string>
+	<string name="radioButtonStairsDown">Stairs down</string>
+	<string name="radioButtonRunning">Running</string>
+	<string name="radioButtonJumping">Jumping</string>
+	
+	<string name="radioButtonSimmi">Simmi</string>
+	<string name="radioButtonDaniel">Daniel</string>
+	<string name="radioButtonAlien1">Alien1</string>
+	<string name="radioButtonAlien2">Alien2</string>
+	
+	<string name="radioButton10">10 secs</string>
+	<string name="radioButton15">15 secs</string>
+	<string name="radioButton30">30 secs</string>
+	
+	<string name="labelTestSoundStatic">Test sound:</string>
+	<string name="testSoundButton">Test sound</string>
+	
+	<string-array name="timeDelayArray">        
+	    <item>5</item>
+	    <item>2</item>        
+	    <item>3</item>        
+	    <item>4</item>        
+	            
+	    <item>6</item>        
+	    <item>7</item>        
+	    <item>8</item>        
+	    <item>9</item>    
+	    </string-array>
+	
+</resources>

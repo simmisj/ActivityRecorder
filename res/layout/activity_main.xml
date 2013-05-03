@@ -1,0 +1,263 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity" >
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:orientation="vertical" >
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="12dp"
+            android:layout_gravity="fill" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <Button
+                android:id="@+id/buttonStartRec"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:onClick="startRecButtonClicked"
+                android:text="@string/startRecordButton" />
+
+            <Button
+                android:id="@+id/buttonStopRec"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:onClick="stopRecordButtonClicked"
+                android:text="@string/stopRecordButton" />
+        </LinearLayout>
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="12dp"
+            android:layout_gravity="fill" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <Spinner
+                android:id="@+id/spinnerStartDelay"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:entries="@array/timeDelayArray" />
+
+            <Spinner
+                android:id="@+id/spinnerStopCut"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:entries="@array/timeDelayArray" />
+        </LinearLayout>
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="12dp"
+            android:layout_gravity="fill" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <Button
+                android:id="@+id/buttonSaveData"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:onClick="saveDataButtonClicked"
+                android:text="@string/saveDataButton" />
+
+            <Button
+                android:id="@+id/buttonUploadData"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:onClick="uploadDataButtonClicked"
+                android:text="@string/uploadDataButton" />
+
+            <Button
+                android:id="@+id/buttonDeleteData"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:onClick="eraseDataButtonClicked"
+                android:text="@string/eraseDataButton" />
+        </LinearLayout>
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="5dp"
+            android:layout_gravity="fill" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <RadioGroup
+                android:id="@+id/radioGroupAction"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="vertical" >
+
+                <RadioButton
+                    android:id="@+id/radioButtonWalking"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:onClick="radioButtonWalkingClicked"
+                    android:text="@string/radioButtonWalking" />
+
+                <RadioButton
+                    android:id="@+id/radioButtonSitting"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:onClick="radioButtonSittingClicked"
+                    android:text="@string/radioButtonSitting" />
+
+                <RadioButton
+                    android:id="@+id/radioButtonStairsUp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:onClick="radioButtonStairsUpClicked"
+                    android:text="@string/radioButtonStairsUp" />
+
+                <RadioButton
+                    android:id="@+id/radioButtonStairsDown"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:onClick="radioButtonStairsDownClicked"
+                    android:text="@string/radioButtonStairsDown" />
+
+                <RadioButton
+                    android:id="@+id/radioButtonRunning"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:onClick="radioButtonRunningClicked"
+                    android:text="@string/radioButtonRunning" />
+
+                <RadioButton
+                    android:id="@+id/radioButtonJumping"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:onClick="radioButtonJumpingClicked"
+                    android:text="@string/radioButtonJumping" />
+            </RadioGroup>
+
+            <RadioGroup
+                android:id="@+id/radioGroupUser"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="vertical" >
+
+                <RadioButton
+                    android:id="@+id/radioButtonSimmi"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:onClick="radioButtonSimmiClicked"
+                    android:text="@string/radioButtonSimmi" />
+
+                <RadioButton
+                    android:id="@+id/radioButtonDaniel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:onClick="radioButtonDanielClicked"
+                    android:text="@string/radioButtonDaniel" />
+
+                <RadioButton
+                    android:id="@+id/radioButtonAlien1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:onClick="radioButtonAlien1Clicked"
+                    android:text="@string/radioButtonAlien1" />
+
+                <RadioButton
+                    android:id="@+id/radioButtonAlien2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:onClick="radioButtonAlien2Clicked"
+                    android:text="@string/radioButtonAlien2" />
+
+                <Space
+                    android:layout_width="wrap_content"
+                    android:layout_height="30dp"
+                    android:layout_gravity="fill" />
+            </RadioGroup>
+
+            <RadioGroup
+                android:id="@+id/radioGroupTime"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="vertical" >
+
+                <RadioButton
+                    android:id="@+id/radioButtonTenSeconds"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checked="true"
+                    android:onClick="radioButton10Clicked"
+                    android:text="@string/radioButton10" />
+
+                <RadioButton
+                    android:id="@+id/radioButtonFifteenSeconds"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:onClick="radioButton15Clicked"
+                    android:text="@string/radioButton15" />
+
+                <RadioButton
+                    android:id="@+id/radioButtonThirtySeconds"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:onClick="radioButton30Clicked"
+                    android:text="@string/radioButton30" />
+
+                <Space
+                    android:layout_width="wrap_content"
+                    android:layout_height="45dp"
+                    android:layout_gravity="fill" />
+
+                <Button
+                    android:id="@+id/buttonTestSound"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:onClick="buttonTestSoundClicked"
+                    android:text="@string/testSoundButton" />
+            </RadioGroup>
+        </LinearLayout>
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="5dp"
+            android:layout_gravity="fill" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <TextView
+                android:id="@+id/textViewStaticStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/staticStatusText"
+                android:textAppearance="?android:attr/textAppearanceMedium" />
+
+            <TextView
+                android:id="@+id/textViewStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:text="@string/statusText"
+                android:textAppearance="?android:attr/textAppearanceSmall" />
+        </LinearLayout>
+    </LinearLayout>
+
+</RelativeLayout>
