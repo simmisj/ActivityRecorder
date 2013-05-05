@@ -2,6 +2,7 @@ package dk.itu.activityrecorder;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -10,6 +11,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -31,6 +33,9 @@ import android.content.DialogInterface;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.Button;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -38,7 +43,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 
 /*
  * Notes..
@@ -53,7 +59,7 @@ import android.widget.Toast;
  * 23.04.2012 When pressing the start button and then the stop button to cancel the recording sometimes 
  * it keeps running and sometimes it doesn't.  Chek it out...
  */
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements OnItemSelectedListener {
 	
 	
 	private String lifeCycleTag = "lifecycle";
@@ -88,7 +94,7 @@ public class MainActivity extends Activity {
 	
 	// Same as numberofsamplepersec but this one is in use. This one can be used without calculation
 	// to indicate how many samples per second you want.
-	int FRAMES_PER_SECOND = 20;
+	int FRAMES_PER_SECOND = 50;
 	
 	// The name associated with the data being written.
 	String dataUser = "simmi";  // Default =  simmi
@@ -98,6 +104,9 @@ public class MainActivity extends Activity {
 	 
 	// Number of seconds to collect data for. It is updated with the click of the radio buttons.
 	int numberOfSecondsToCollectData = 10;  // Default =  10
+	
+	// The time before the collection of data starts.
+	int timeToStart = 5; // default value = 5.
 	
 	// The format of the timestamp.
 	DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
@@ -124,6 +133,32 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		Log.v(lifeCycleTag,"OnCreate started");
+		/*
+		// Want to do this in XML but can't see how to do it.
+		Spinner startDelaySpinner = (Spinner) findViewById(R.id.spinnerStartDelay);
+		startDelaySpinner.setOnItemSelectedListener(new OnItemSelectedListener() {
+
+			@Override
+			public void onItemSelected(AdapterView<?> arg0, View arg1,
+					int arg2, long arg3) {
+				// TODO Auto-generated method stub
+				Log.v(buttonTag,"Start delay spinner clicked. Old spinner value: "+timeToStart);
+				Spinner delaySpinner = (Spinner) findViewById(R.id.spinnerStartDelay);
+				timeToStart = Integer.parseInt(delaySpinner.getSelectedItem().toString());
+				Log.v(buttonTag,"Start delay spinner clicked. New spinner value: "+timeToStart);
+				
+			}
+
+			@Override
+			public void onNothingSelected(AdapterView<?> arg0) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+		*/
+		
+		//Spinner spinner = (Spinner) findViewById(R.id.spinnerStartDelay);
+		//spinner.setOnItemSelectedListener(this);
 		
 		uploader = new DataUploader("http://ma3tester.appspot.com/ma3tester");
 		
@@ -267,7 +302,7 @@ public class MainActivity extends Activity {
 		stopRec.setEnabled(false);
 		
 		Button saveData = (Button) findViewById(R.id.buttonSaveData);
-		saveData.setEnabled(false);
+		saveData.setEnabled(true);
 		Button uploadData = (Button) findViewById(R.id.buttonUploadData);
 		uploadData.setEnabled(true);
 		Button eraseData = (Button) findViewById(R.id.buttonDeleteData);
@@ -482,16 +517,19 @@ public class MainActivity extends Activity {
 		
 		// spinnerStartTime holds the delay in seconds before starting to record. 
 		// This delay is used on the timer as a delay.
-		Spinner delaySpinner = (Spinner) findViewById(R.id.spinnerStartDelay);
-		int timeToStart = Integer.parseInt(delaySpinner.getSelectedItem().toString());
+		// THIS HAS BEEN CHANGED TO A GLOBAL VARIABLE. It changes the value when the spinner is changed.
+		//Spinner delaySpinner = (Spinner) findViewById(R.id.spinnerStartDelay);
+		//int timeToStart = Integer.parseInt(delaySpinner.getSelectedItem().toString());
 		
 		// Instantiate the list that will hold the data.
 		data = new ArrayList<String>();
 		
 		// Add the header to the CSV file. First column is time stamp
 		// but sometimes I leave it blank so I don't need to delete 
-		// it when plotting it in excel.
-		data.add("timestamp,X,Y,Z");
+		// it when plotting it in excel. 
+		// This should be done later since
+		// working with the data is easier without the header.
+		//data.add("timestamp,X,Y,Z");
 		
 		running = true;
 		stopButtonUsed = false;
@@ -589,7 +627,8 @@ public class MainActivity extends Activity {
 		
 		vib.vibrate(50);
 	}
-
+	
+	/*
 	public void saveDataButtonClicked(View view) throws IOException {
 		
 		Log.v(buttonTag,"Save data clicked");
@@ -601,9 +640,10 @@ public class MainActivity extends Activity {
 		String nameOfFile = numberOfSecondsToCollectData+dataUser+action+dateFormatFileName.format(now);
 		//String nameOfFile = "sid";
 		Log.v(buttonTag,"path: "+nameOfFile);
-		String fpath=Environment.getExternalStorageDirectory().getAbsolutePath()+"/ActivityRecorder/"+nameOfFile+".txt";
+		//String fpathInternal = Environment.getDownloadCacheDirectory().getAbsolutePath()+"/activityrecorder"+nameOfFile+".txt";
+		String fpathExternal = Environment.getExternalStorageDirectory().getAbsolutePath()+"/ActivityRecorder/"+nameOfFile+".txt";
 		
-		File logFile = new File(fpath);
+		File logFile = new File(fpathExternal);
 		if (!logFile.exists()) {
 			try
 			{
@@ -615,7 +655,27 @@ public class MainActivity extends Activity {
 		    	e.printStackTrace();
 		    }
 		}
+		//Simmis saving method
 		BufferedWriter buf = null;
+		
+		// Daniels saving method
+		//FileOutputStream fOut = openFileOutput(fpath,MODE_WORLD_READABLE);
+		//OutputStreamWriter osw = new OutputStreamWriter(fOut);
+		List<String> temp = new ArrayList<String>();
+		
+		temp.add("20:20:20,10.0,10.0,40.0");
+		temp.add("20:20:20,20.0,30.0,50.0");
+		temp.add("20:20:20,30.0,50.0,80.0");
+		temp.add("20:20:20,40.0,40.0,60.0");
+		temp.add("20:20:20,50.0,90.0,40.0");
+		temp.add("20:20:20,40.0,80.0,20.0");
+		temp.add("20:20:20,50.0,50.0,60.0");
+		temp.add("20:20:20,30.0,20.0,40.0");
+		temp.add("20:20:20,60.0,60.0,10.0");
+		temp.add("20:20:20,10.0,50.0,50.0");
+		temp.add("20:20:20,70.0,10.0,90.0");
+		
+		List<String> gaussian = gaussianFilter(temp,new int[] {1,4,6,4,1});
 		
 		try{
 			buf = new BufferedWriter(new FileWriter(logFile,true));
@@ -624,20 +684,213 @@ public class MainActivity extends Activity {
 			ioe.printStackTrace();
 		}
 		
+		if(gaussian != null)
+		{
+			for(int i = 0; i < gaussian.size();i++)
+			{
+				Log.v(printDataTag,gaussian.get(i).toString());
+				//Log.v(printDataTag,data.get(i).toString());
+				//osw.write(data.get(i).toString());
+				//osw.write("\n");
+				buf.append(gaussian.get(i).toString());
+				//buf.append(data.get(i).toString());
+				buf.append("\n");
+			}	
+			Log.v(printDataTag,"Size of data: "+gaussian.size());
+		}
+		
+		buf.close();
+		initialScreen("Data saved to: "+fpathExternal+" Ready for another go..");
+		/*
+		if(!data.isEmpty())
+		{
+			data.clear();
+		}
+		
+		// Daniels saving method
+		//osw.flush();
+		//osw.close();
+	}*/
+	
+	public void saveDataButtonClicked(View view) throws IOException {
+		
+		Log.v(buttonTag,"Save data clicked");
+		
+		savingDataScreen("Data is being SAVED TO DISK and you probably won't even see this message. Blabla.");
+		
+		Date now = new Date();
+
+		String nameOfFile = numberOfSecondsToCollectData+dataUser+action+dateFormatFileName.format(now);
+		//String nameOfFile = "sid";
+		Log.v(buttonTag,"path: "+nameOfFile);
+		//String fpathInternal = Environment.getDownloadCacheDirectory().getAbsolutePath()+"/activityrecorder"+nameOfFile+".txt";
+		String fpathExternal = Environment.getExternalStorageDirectory().getAbsolutePath()+"/ActivityRecorder/"+nameOfFile+".txt";
+		String fpathExternalOriginal = Environment.getExternalStorageDirectory().getAbsolutePath()+"/ActivityRecorder/"+"O"+nameOfFile+".txt";
+		
+		File logFile = new File(fpathExternal);
+		File logFileOriginal = new File(fpathExternalOriginal);
+		if (!logFile.exists()) {
+			try
+			{
+				logFile.createNewFile();
+		    } 
+		    catch (IOException e)
+		    {
+		         
+		    	e.printStackTrace();
+		    }
+		}
+		
+		if (!logFileOriginal.exists()) {
+			try
+			{
+				logFileOriginal.createNewFile();
+		    } 
+		    catch (IOException e)
+		    {
+		         
+		    	e.printStackTrace();
+		    }
+		}
+		
+		List<String> processedData = gaussianFilter(data,new int[]{1,4,7,10,15,21,28,32,40,32,28,21,15,10,7,4,1});
+		
+		//Simmis saving method
+		BufferedWriter buf = null;
+		BufferedWriter bufOriginal = null;
+		
+		
+		try{
+			buf = new BufferedWriter(new FileWriter(logFile,true));
+			bufOriginal = new BufferedWriter(new FileWriter(logFileOriginal,true));
+		}
+		catch(IOException ioe) {
+			ioe.printStackTrace();
+		}
+		
+		if(processedData != null)
+		{
+			for(int i = 0; i < processedData.size();i++)
+			{
+				Log.v(printDataTag,processedData.get(i).toString());
+				//Log.v(printDataTag,data.get(i).toString());
+				//osw.write(data.get(i).toString());
+				//osw.write("\n");
+				buf.append(processedData.get(i).toString());
+				//buf.append(data.get(i).toString());
+				buf.append("\n");
+			}	
+			Log.v(printDataTag,"Size of data: "+processedData.size());
+		}
+		
 		if(data != null)
 		{
 			for(int i = 0; i < data.size();i++)
 			{
 				Log.v(printDataTag,data.get(i).toString());
-				buf.append(data.get(i).toString());
-				buf.append("\n");
+				//Log.v(printDataTag,data.get(i).toString());
+				//osw.write(data.get(i).toString());
+				//osw.write("\n");
+				bufOriginal.append(data.get(i).toString());
+				//buf.append(data.get(i).toString());
+				bufOriginal.append("\n");
 			}	
 			Log.v(printDataTag,"Size of data: "+data.size());
 		}
 		
 		buf.close();
-		initialScreen("Data saved to: "+fpath+" Ready for another go..");
-		data.clear();
+		bufOriginal.close();
+		initialScreen("Data saved to: "+fpathExternal+" Ready for another go..");
+		
+		if(!data.isEmpty())
+		{
+			data.clear();
+		}
+		if(!processedData.isEmpty())
+		{
+			processedData.clear();
+		}
+		
+	}
+	
+	
+	public List<String> gaussianFilter(List<String> list, int[] weights) {
+		List<String> temp = new ArrayList<String>();
+		
+		String[] timestamp = new String[list.size()];
+		float[] x = new float[list.size()];
+		float[] y = new float[list.size()];
+		float[] z = new float[list.size()];
+		
+		for(int i = 0;i<list.size();i++){
+		//for(String s : list){
+			
+			try{
+			String[] split = list.get(i).split(",");
+			timestamp[i] = split[0];
+			x[i] = Float.parseFloat(split[1]);
+			y[i] = Float.parseFloat(split[2]);
+			z[i] = Float.parseFloat(split[3]);
+			}
+			catch(Exception e){
+				continue;
+			}
+		}
+		
+		
+		
+		float[] xGaussian = applyGaussianFilter(x, weights);
+		float[] yGaussian = applyGaussianFilter(y, weights);
+		float[] zGaussian = applyGaussianFilter(z, weights);
+		
+		for(int e = 0; e < list.size(); e++){
+			String h = timestamp[e]+","+xGaussian[e]+","+yGaussian[e]+","+zGaussian[e];
+			temp.add(h);
+		}
+		
+		return temp;
+	}
+	
+	public float[] applyGaussianFilter(float[] values, int[] weights){
+		float[] temp = new float[values.length];
+		
+		float[] digitsAround = new float[weights.length];
+		
+		int offset = (weights.length / 2);
+		
+		int denominator = 0;
+		for(int r : weights){
+			denominator += r;
+		}
+		
+		for(int f = 0; f < values.length; f++){
+			float numberToFilter = values[f];
+			//digitsAround = new float[weights.length];
+			int index = 0;
+			
+			for(int e = 0; e <  weights.length; e++){
+				int nextNumber = e;
+				//|| (e+f)+offset > values.length
+				if((e+f) - offset < 0 || (e+f) - offset >= values.length){
+					digitsAround[e] = 0;
+				}
+				else{
+					digitsAround[e] = values[(e+f)-offset];
+				
+				}
+				index++;
+			}
+			
+			float temporary = 0;
+			
+			for(int g = 0; g < digitsAround.length; g++){
+				temporary += digitsAround[g] * weights[g];
+			}
+			temp[f] = temporary / denominator;
+			
+		}
+		
+		return temp;
 	}
 	
 	public void uploadDataButtonClicked(View view){
@@ -651,7 +904,7 @@ public class MainActivity extends Activity {
 		int ys = 0;
 		int zs = 0;
 		int index = 0;
-		for(int i = 0; i < 2; i++)
+		for(int i = 0; i < 20; i++)
 		{
 			tempData.add("13:40:"+time+","+xs+","+ys+","+zs);
 			time++;
@@ -661,12 +914,14 @@ public class MainActivity extends Activity {
 			index++;
 		}
 		
+		
 		String nameOfFile = numberOfSecondsToCollectData+dataUser+action+dateFormatFileName.format(now);
 		//String returnString = "String was never changed. Upload data button clicked.";
 		try {
 			Log.v(uploadDataTag,"name of file: "+nameOfFile);
-			uploader.uploadList(nameOfFile, tempData, 6);
-		
+			//uploader.uploadList(nameOfFile, tempData, 6);
+			//uploader.uploadJson(nameOfFile,tempData);
+			
 		}
 		catch(Exception e) {
 			Log.v(uploadDataTag,"Exception: "+e);
@@ -804,6 +1059,29 @@ public class MainActivity extends Activity {
 	
 	// Spinners on click.
 	public void startDelaySpinnerClicked(View view) {
-		Log.v(buttonTag,"Start delay spinner clicked");
+		//Log.v(buttonTag,"Start delay spinner clicked");
+		Spinner delaySpinner = (Spinner) findViewById(R.id.spinnerStartDelay);
+		timeToStart = Integer.parseInt(delaySpinner.getSelectedItem().toString());
+		Log.v(buttonTag,"Start delay spinner clicked. Spinner value: "+timeToStart);
+	}
+	
+	public void sampleRateSpinnerClicked(View view) {
+		//Log.v(buttonTag,"Start delay spinner clicked");
+		//Spinner delaySpinner = (Spinner) findViewById(R.id.spinnerStartDelay);
+		//timeToStart = Integer.parseInt(delaySpinner.getSelectedItem().toString());
+		//Log.v(buttonTag,"Start delay spinner clicked. Spinner value: "+timeToStart);
+	}
+
+	@Override
+	public void onItemSelected(AdapterView<?> parent, View arg1, int pos,
+			long arg3) {
+		// TODO Auto-generated method stub
+		Log.v(buttonTag,"Item selected: "+parent.getItemIdAtPosition(pos));
+	}
+
+	@Override
+	public void onNothingSelected(AdapterView<?> arg0) {
+		// TODO Auto-generated method stub
+		
 	}
 }

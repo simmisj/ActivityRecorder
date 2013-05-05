@@ -9,6 +9,7 @@ package dk.itu.activityrecorder;
 
 public final class R {
     public static final class array {
+        public static final int sampleRate=0x7f060001;
         public static final int timeDelayArray=0x7f060000;
     }
     public static final class attr {
@@ -21,9 +22,9 @@ public final class R {
         public static final int buttonSaveData=0x7f090004;
         public static final int buttonStartRec=0x7f090000;
         public static final int buttonStopRec=0x7f090001;
-        public static final int buttonTestSound=0x7f090017;
+        public static final int buttonTestSound=0x7f090018;
         public static final int buttonUploadData=0x7f090005;
-        public static final int menu_settings=0x7f09001a;
+        public static final int menu_settings=0x7f09001b;
         public static final int radioButtonAlien1=0x7f090011;
         public static final int radioButtonAlien2=0x7f090012;
         public static final int radioButtonDaniel=0x7f090010;
@@ -40,10 +41,11 @@ public final class R {
         public static final int radioGroupAction=0x7f090007;
         public static final int radioGroupTime=0x7f090013;
         public static final int radioGroupUser=0x7f09000e;
+        public static final int spinnerSampleRate=0x7f090017;
         public static final int spinnerStartDelay=0x7f090002;
         public static final int spinnerStopCut=0x7f090003;
-        public static final int textViewStaticStatus=0x7f090018;
-        public static final int textViewStatus=0x7f090019;
+        public static final int textViewStaticStatus=0x7f090019;
+        public static final int textViewStatus=0x7f09001a;
     }
     public static final class layout {
         public static final int activity_main=0x7f030000;
@@ -59,7 +61,7 @@ public final class R {
         public static final int app_name=0x7f050000;
         public static final int eraseDataButton=0x7f050007;
         public static final int hello_world=0x7f050002;
-        public static final int labelTestSoundStatic=0x7f050017;
+        public static final int labelTestSoundStatic=0x7f050018;
         public static final int menu_settings=0x7f050001;
         public static final int radioButton10=0x7f050014;
         public static final int radioButton15=0x7f050015;
@@ -75,11 +77,12 @@ public final class R {
         public static final int radioButtonStairsUp=0x7f05000c;
         public static final int radioButtonWalking=0x7f05000a;
         public static final int saveDataButton=0x7f050005;
+        public static final int spinnerSampleRate=0x7f050017;
         public static final int startRecordButton=0x7f050003;
         public static final int staticStatusText=0x7f050008;
         public static final int statusText=0x7f050009;
         public static final int stopRecordButton=0x7f050004;
-        public static final int testSoundButton=0x7f050018;
+        public static final int testSoundButton=0x7f050019;
         public static final int uploadDataButton=0x7f050006;
     }
     public static final class style {

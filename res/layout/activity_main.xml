@@ -226,12 +226,27 @@
                     android:layout_height="45dp"
                     android:layout_gravity="fill" />
 
-                <Button
-                    android:id="@+id/buttonTestSound"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:onClick="buttonTestSoundClicked"
-                    android:text="@string/testSoundButton" />
+                    android:orientation="vertical" >
+
+                    <Spinner
+                        android:id="@+id/spinnerSampleRate"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:entries="@array/sampleRate"
+                        android:prompt="@string/spinnerSampleRate"
+                         />
+
+                    <Button
+                        android:id="@+id/buttonTestSound"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:onClick="buttonTestSoundClicked"
+                        android:text="@string/testSoundButton" />
+
+                </LinearLayout>
             </RadioGroup>
         </LinearLayout>
 
