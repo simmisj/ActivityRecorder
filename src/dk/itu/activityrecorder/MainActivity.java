@@ -159,7 +159,8 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		
 		//Spinner spinner = (Spinner) findViewById(R.id.spinnerStartDelay);
 		//spinner.setOnItemSelectedListener(this);
-		
+		//uploader = new DataUploader("http://10.25.253.124:8888/mandatoryassignment3_gae");
+		//uploader = new DataUploader("http://ma3gae.appspot.com/mandatoryassignment3_gae");
 		uploader = new DataUploader("http://ma3tester.appspot.com/ma3tester");
 		
 		beepShort = MediaPlayer.create(this, R.raw.beepshort);
@@ -302,9 +303,9 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		stopRec.setEnabled(false);
 		
 		Button saveData = (Button) findViewById(R.id.buttonSaveData);
-		saveData.setEnabled(true);
+		saveData.setEnabled(false);
 		Button uploadData = (Button) findViewById(R.id.buttonUploadData);
-		uploadData.setEnabled(true);
+		uploadData.setEnabled(false);
 		Button eraseData = (Button) findViewById(R.id.buttonDeleteData);
 		eraseData.setEnabled(false);
 		
@@ -529,7 +530,9 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		// it when plotting it in excel. 
 		// This should be done later since
 		// working with the data is easier without the header.
-		//data.add("timestamp,X,Y,Z");
+		data.add("timestamp,x,y,z,activity_label");
+		
+		
 		
 		running = true;
 		stopButtonUsed = false;
@@ -557,7 +560,7 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 				  {
 					  Date date = new Date();
 					  Log.v(accelerometerTag,"Date: "+dateFormat.format(date));
-					  data.add(dateFormat.format(date)+","+sensorMonitor.getX()+","+sensorMonitor.getY()+","+sensorMonitor.getZ());
+					  data.add(dateFormat.format(date)+","+sensorMonitor.getX()+","+sensorMonitor.getY()+","+sensorMonitor.getZ()+","+action);
 					  numberOfEntries++;
 					  next_game_tick += SKIP_TICKS;
 					  sleep_time = (int) (next_game_tick - GetTickCount());
@@ -599,7 +602,19 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 				    };
 				    runOnUiThread(changeToFinishedRecording);
 				  }
-				  
+				  else
+				  {
+					  
+					// Ask teacher if there is any better way to do this.
+					  Runnable changeToFinishedRecording = new Runnable() {
+					        @Override
+					        public void run() {
+					        	initialScreen("Recording was stopped by user. Ready for another go..");
+					        	
+					        }
+					    };
+					    runOnUiThread(changeToFinishedRecording);
+				  }
 				  
 				  mSensorManager.unregisterListener(sensorMonitor);
 				  
@@ -623,7 +638,7 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		
 		//mSensorManager.unregisterListener(sensorMonitor);
 		
-		initialScreen("Recording was stopped by user. Ready for another go..");
+		recordingScreen("Recording was stopped by user. Getting ready for another go..");
 		
 		vib.vibrate(50);
 	}
@@ -817,20 +832,29 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 	public List<String> gaussianFilter(List<String> list, int[] weights) {
 		List<String> temp = new ArrayList<String>();
 		
-		String[] timestamp = new String[list.size()];
-		float[] x = new float[list.size()];
-		float[] y = new float[list.size()];
-		float[] z = new float[list.size()];
+		List<String> listToWorkWith = new ArrayList<String>();
+		listToWorkWith.addAll(list);
 		
-		for(int i = 0;i<list.size();i++){
+		listToWorkWith.remove(0);
+		
+		String[] timestamp = new String[listToWorkWith.size()];
+		float[] x = new float[listToWorkWith.size()];
+		float[] y = new float[listToWorkWith.size()];
+		float[] z = new float[listToWorkWith.size()];
+		String[] activity_label = new String[listToWorkWith.size()];
+		
+		
+		
+		for(int i = 0;i<listToWorkWith.size();i++){
 		//for(String s : list){
 			
 			try{
-			String[] split = list.get(i).split(",");
-			timestamp[i] = split[0];
-			x[i] = Float.parseFloat(split[1]);
-			y[i] = Float.parseFloat(split[2]);
-			z[i] = Float.parseFloat(split[3]);
+				String[] split = listToWorkWith.get(i).split(",");
+				timestamp[i] = split[0];
+				x[i] = Float.parseFloat(split[1]);
+				y[i] = Float.parseFloat(split[2]);
+				z[i] = Float.parseFloat(split[3]);
+				activity_label[i] = split[4];
 			}
 			catch(Exception e){
 				continue;
@@ -843,8 +867,10 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		float[] yGaussian = applyGaussianFilter(y, weights);
 		float[] zGaussian = applyGaussianFilter(z, weights);
 		
-		for(int e = 0; e < list.size(); e++){
-			String h = timestamp[e]+","+xGaussian[e]+","+yGaussian[e]+","+zGaussian[e];
+		temp.add("timestamp,x,y,z,activity_label");
+		
+		for(int e = 0; e < listToWorkWith.size(); e++){
+			String h = timestamp[e]+","+xGaussian[e]+","+yGaussian[e]+","+zGaussian[e]+","+activity_label[e];
 			temp.add(h);
 		}
 		
@@ -904,7 +930,7 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		int ys = 0;
 		int zs = 0;
 		int index = 0;
-		for(int i = 0; i < 20; i++)
+		for(int i = 0; i < 1; i++)
 		{
 			tempData.add("13:40:"+time+","+xs+","+ys+","+zs);
 			time++;
@@ -920,7 +946,7 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		try {
 			Log.v(uploadDataTag,"name of file: "+nameOfFile);
 			//uploader.uploadList(nameOfFile, tempData, 6);
-			//uploader.uploadJson(nameOfFile,tempData);
+			uploader.uploadJson(nameOfFile,tempData);
 			
 		}
 		catch(Exception e) {

@@ -3,7 +3,6 @@ package dk.itu.activityrecorder;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -15,9 +14,9 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+
 
 
 
@@ -28,7 +27,7 @@ public class DataUploader {
 
 	private HttpPost httpPost;
 	// = new HttpPost("http://pervasivelecture10simmi.appspot.com/ma3tester");
-	private HttpClient httpClient = new DefaultHttpClient();
+	private HttpClient httpClient; 
 
 	private String dataUploaderTag = "upload";
 
@@ -64,8 +63,12 @@ public class DataUploader {
 			}
 			obj.put("measures", array);
 			
-			receiveJson(obj.toJSONString());
-			//new Post().execute(nameOfFile,JSONValue.toJSONString(list));
+			//receiveJson(obj.toString());
+			Log.v(dataUploaderTag, "Json string: "+obj.toJSONString());
+			
+			
+			
+			new Post().execute(nameOfFile,obj.toString());
 		} catch (Exception e) {
 			Log.v(dataUploaderTag, "Exception: " + e);
 		}
@@ -73,9 +76,10 @@ public class DataUploader {
 	}
 
 	
-	public void receiveJson(Object json){
+	public void receiveJson(String json) throws ParseException{
+		JSONParser parser=new JSONParser();  
 		
-		JSONObject obj = (JSONObject) json;
+		JSONObject obj = (JSONObject) parser.parse(json);
 		
 		JSONArray msg = (JSONArray) obj.get("measures");
 		
@@ -111,6 +115,7 @@ public class DataUploader {
 
 		@Override
 		protected Integer doInBackground(String... arg0) {
+			httpClient = new DefaultHttpClient();
 			String nameOfRecord = arg0[0];
 			
 			String data = arg0[1];
@@ -119,8 +124,7 @@ public class DataUploader {
 			
 			nameValuePairs = new ArrayList<NameValuePair>(2);
 
-			nameValuePairs.add(new BasicNameValuePair("nameOfRecord",
-					nameOfRecord));
+			nameValuePairs.add(new BasicNameValuePair("nameOfRecord", nameOfRecord));
 			nameValuePairs.add(new BasicNameValuePair("data", data));
 
 			// Execute HTTP Post Request
@@ -128,8 +132,7 @@ public class DataUploader {
 				httpPost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 				HttpResponse response = httpClient.execute(httpPost);
 				// httpPost.getEntity().consumeContent();
-				Log.v(dataUploaderTag,
-						" Status line: " + response.getStatusLine());
+				Log.v(dataUploaderTag," Status line: " + response.getStatusLine());
 			} catch (ClientProtocolException e) {
 				e.printStackTrace();
 
