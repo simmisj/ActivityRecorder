@@ -18,34 +18,31 @@ public final class R {
         public static final int ic_launcher=0x7f020000;
     }
     public static final class id {
-        public static final int buttonDeleteData=0x7f090006;
-        public static final int buttonSaveData=0x7f090004;
+        public static final int buttonDeleteData=0x7f090004;
+        public static final int buttonSaveData=0x7f090002;
         public static final int buttonStartRec=0x7f090000;
         public static final int buttonStopRec=0x7f090001;
-        public static final int buttonTestSound=0x7f090018;
-        public static final int buttonUploadData=0x7f090005;
-        public static final int menu_settings=0x7f09001b;
-        public static final int radioButtonAlien1=0x7f090011;
-        public static final int radioButtonAlien2=0x7f090012;
-        public static final int radioButtonDaniel=0x7f090010;
-        public static final int radioButtonFifteenSeconds=0x7f090015;
-        public static final int radioButtonJumping=0x7f09000d;
-        public static final int radioButtonRunning=0x7f09000c;
-        public static final int radioButtonSimmi=0x7f09000f;
-        public static final int radioButtonSitting=0x7f090009;
-        public static final int radioButtonStairsDown=0x7f09000b;
-        public static final int radioButtonStairsUp=0x7f09000a;
-        public static final int radioButtonTenSeconds=0x7f090014;
-        public static final int radioButtonThirtySeconds=0x7f090016;
-        public static final int radioButtonWalking=0x7f090008;
-        public static final int radioGroupAction=0x7f090007;
-        public static final int radioGroupTime=0x7f090013;
-        public static final int radioGroupUser=0x7f09000e;
-        public static final int spinnerSampleRate=0x7f090017;
-        public static final int spinnerStartDelay=0x7f090002;
-        public static final int spinnerStopCut=0x7f090003;
-        public static final int textViewStaticStatus=0x7f090019;
-        public static final int textViewStatus=0x7f09001a;
+        public static final int buttonTestSound=0x7f090015;
+        public static final int buttonUploadData=0x7f090003;
+        public static final int menu_settings=0x7f090018;
+        public static final int radioButtonAlien1=0x7f09000f;
+        public static final int radioButtonAlien2=0x7f090010;
+        public static final int radioButtonDaniel=0x7f09000e;
+        public static final int radioButtonFifteenSeconds=0x7f090013;
+        public static final int radioButtonJumping=0x7f09000b;
+        public static final int radioButtonRunning=0x7f09000a;
+        public static final int radioButtonSimmi=0x7f09000d;
+        public static final int radioButtonSitting=0x7f090007;
+        public static final int radioButtonStairsDown=0x7f090009;
+        public static final int radioButtonStairsUp=0x7f090008;
+        public static final int radioButtonTenSeconds=0x7f090012;
+        public static final int radioButtonThirtySeconds=0x7f090014;
+        public static final int radioButtonWalking=0x7f090006;
+        public static final int radioGroupAction=0x7f090005;
+        public static final int radioGroupTime=0x7f090011;
+        public static final int radioGroupUser=0x7f09000c;
+        public static final int textViewStaticStatus=0x7f090016;
+        public static final int textViewStatus=0x7f090017;
     }
     public static final class layout {
         public static final int activity_main=0x7f030000;

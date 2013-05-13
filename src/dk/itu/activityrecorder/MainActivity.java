@@ -11,6 +11,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -31,6 +32,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.View;
 import android.widget.AdapterView;
@@ -81,7 +83,7 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 	Timer timer = new Timer();
 	
 	// A boolean to know when to stop recording data.
-	boolean running = true;
+	boolean running = false;
 	
 	// A boolean to indicate if the stop button was used to stop the recording or not.
 	boolean stopButtonUsed = false;
@@ -89,24 +91,29 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 	// The list that will hold the data.
 	List<String> data; 
 	
-	// Number of samples per second.
-	int numberOfSamplesPerSec = 50;  // 50 means 20 samples per second.
-	
-	// Same as numberofsamplepersec but this one is in use. This one can be used without calculation
-	// to indicate how many samples per second you want.
+	// Indicates how many "frames" per second we want. A frame is a record of x,y and z.
+	// This values is not changed. I wanted to use a spinner to manipulate this value but
+	// spinners are a pain in the #$% so I have simply put 50 as the default. It is a good 
+	// value and does not need to be changed.
 	int FRAMES_PER_SECOND = 50;
 	
 	// The name associated with the data being written.
+	// This changes when the user uses the radio buttons associated with names.
 	String dataUser = "simmi";  // Default =  simmi
 	
 	// The action associated with the data being written. 
+	// This changes when the user uses the radio buttons associated with action.
 	String action = "walking";  // Default =  walking
 	 
-	// Number of seconds to collect data for. It is updated with the click of the radio buttons.
+	// Number of seconds to collect data for.
+	// This changes when the user uses the radio buttons associated with time.
 	int numberOfSecondsToCollectData = 10;  // Default =  10
 	
 	// The time before the collection of data starts.
-	int timeToStart = 5; // default value = 5.
+	// This values is not changed. I wanted to use spinners to manipulate this value but
+	// spinners are a pain in the #$% so I have simply put 5 as the default. It is a good 
+	// value and does not need to be changed.
+	int timeToStart = 5; // default value = 5. (5 seconds)
 	
 	// The format of the timestamp.
 	DateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
@@ -122,63 +129,36 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 	// DataUploader. Used to upload data to google cloud.
 	DataUploader uploader;
 	
-	// All the buttons in the application so I can manipulate them.
-	/*
-	Button startRec;
-	Button stopRec;
-	Button saveData;
-	Button eraseData;
-	*/
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		Log.v(lifeCycleTag,"OnCreate started");
-		/*
-		// Want to do this in XML but can't see how to do it.
-		Spinner startDelaySpinner = (Spinner) findViewById(R.id.spinnerStartDelay);
-		startDelaySpinner.setOnItemSelectedListener(new OnItemSelectedListener() {
-
-			@Override
-			public void onItemSelected(AdapterView<?> arg0, View arg1,
-					int arg2, long arg3) {
-				// TODO Auto-generated method stub
-				Log.v(buttonTag,"Start delay spinner clicked. Old spinner value: "+timeToStart);
-				Spinner delaySpinner = (Spinner) findViewById(R.id.spinnerStartDelay);
-				timeToStart = Integer.parseInt(delaySpinner.getSelectedItem().toString());
-				Log.v(buttonTag,"Start delay spinner clicked. New spinner value: "+timeToStart);
-				
-			}
-
-			@Override
-			public void onNothingSelected(AdapterView<?> arg0) {
-				// TODO Auto-generated method stub
-				
-			}
-		});
-		*/
-		
-		//Spinner spinner = (Spinner) findViewById(R.id.spinnerStartDelay);
-		//spinner.setOnItemSelectedListener(this);
-		//uploader = new DataUploader("http://10.25.253.124:8888/mandatoryassignment3_gae");
-		//uploader = new DataUploader("http://ma3gae.appspot.com/mandatoryassignment3_gae");
-		uploader = new DataUploader("http://ma3tester.appspot.com/ma3tester");
-		
-		beepShort = MediaPlayer.create(this, R.raw.beepshort);
-		
-		beepAlarm = MediaPlayer.create(this, R.raw.beepalarm);
-		
 		setContentView(R.layout.activity_main);
+		
+		Log.v(lifeCycleTag,"OnCreate started");
+		
+		uploader = new DataUploader("10.25.253.124:8888/mandatoryassignment3_gae");
+		//uploader = new DataUploader("http://ma3gae.appspot.com/mandatoryassignment3_gae");
+		//uploader = new DataUploader("http://ma3tester.appspot.com/ma3tester");
+		
+		// Create the media players for the alarms. Beep short for when I start recording and
+		// beep alarm for when I stop recording.
+		beepShort = MediaPlayer.create(this, R.raw.beepshort);
+		beepAlarm = MediaPlayer.create(this, R.raw.beepalarm);
 		
 		beepShort.start();
 		savingDataScreen("Initializing..."); // SavingDataScreen simply turns every view off. I use it here while I am initializing. 
 		
 		/* This is replaced with different methods for different states. Maybe this is better though. 
-		 * Should ask teacher how to implement a loop that I can supply views that need turning off/on.
+		 * Need to figure out how to implement a loop that I can supply views that need turning off/on.
 		startRec = (Button) findViewById(R.id.buttonStartRec);
 		stopRec = (Button) findViewById(R.id.buttonStopRec);
 		saveData = (Button) findViewById(R.id.buttonSaveData);
 		eraseData = (Button) findViewById(R.id.buttonDeleteData);
 		*/
+		
+		// This object will be used to listen to the accelerometer and will update independently of the application.
+		// When I need x,y or z data I simply use the getters in ths class.
 		sensorMonitor = new SensorMonitor();
 		
 		// Get instance of Vibrator from current Context
@@ -206,7 +186,7 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 				// Disable buttons.
 				//enableDisableAllButtons(false);  // Deprecated. Use the XScreen(String Message) instead.
 				TextView statusTextView = (TextView) findViewById(R.id.textViewStatus);
-				statusTextView.setText("Accelerometer found and registered.");
+				statusTextView.setText("Accelerometer NOT found.");
 			}
 			
 		}
@@ -216,11 +196,10 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 			
 			// Disable buttons.
 			//enableDisableAllButtons(false);  // Deprecated. Use the XScreen(String Message) instead.
-			savingDataScreen("Accelerometer NOT found. Disabling buttons."); // SavingDataScreen simply turns every view off. I use it here while I am initializing. 
+			savingDataScreen("Accelerometer NOT found. Disabling buttons."); // SavingDataScreen simply turns every view off. 
 			
 		}
-		initialScreen("Ready. If you did not hear a beep then turn media volume up.");
-		//initialScreen("Everything is fine and ready to start."); // Turn on the initial screen with the program ready to act.
+		initialScreen("Ready. If you did not hear a beep then turn media volume up."); // Turn on the initial screen with the program ready to act.
 		Log.v(lifeCycleTag,"OnCreate finished.");
 	}
 	
@@ -305,19 +284,19 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		Button saveData = (Button) findViewById(R.id.buttonSaveData);
 		saveData.setEnabled(false);
 		Button uploadData = (Button) findViewById(R.id.buttonUploadData);
-		uploadData.setEnabled(false);
+		uploadData.setEnabled(true);
 		Button eraseData = (Button) findViewById(R.id.buttonDeleteData);
 		eraseData.setEnabled(false);
-		
-		Spinner spinDelay = (Spinner) findViewById(R.id.spinnerStartDelay);
-		spinDelay.setEnabled(true);
-		Spinner spinCutOff = (Spinner) findViewById(R.id.spinnerStopCut);
-		spinCutOff.setEnabled(true);
 		
 		RadioGroup action = (RadioGroup) findViewById(R.id.radioGroupAction);
 		int numberOfChilds = action.getChildCount();
 		for(int i = 0;i < numberOfChilds;i++){
 			action.getChildAt(i).setEnabled(true);
+			if(i == 3 || i == 4)
+			{
+				action.getChildAt(i).setEnabled(false);
+				
+			}
 		}
 		RadioGroup user = (RadioGroup) findViewById(R.id.radioGroupUser);
 		numberOfChilds = user.getChildCount();
@@ -329,14 +308,7 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		for(int i = 0;i < numberOfChilds;i++){
 			time.getChildAt(i).setEnabled(true);
 		}
-		/*
-		RadioGroup action = (RadioGroup) findViewById(R.id.radioGroupAction);
-		action.setEnabled(true);
-		RadioGroup user = (RadioGroup) findViewById(R.id.radioGroupUser);
-		user.setEnabled(true);
-		RadioGroup time = (RadioGroup) findViewById(R.id.radioGroupTime);
-		time.setEnabled(true);
-		*/
+		
 	}
 	
 	// Recording screen. Disenables every view except the stop recording button.
@@ -361,11 +333,6 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		Button eraseData = (Button) findViewById(R.id.buttonDeleteData);
 		eraseData.setEnabled(false);
 		
-		Spinner spinDelay = (Spinner) findViewById(R.id.spinnerStartDelay);
-		spinDelay.setEnabled(false);
-		Spinner spinCutOff = (Spinner) findViewById(R.id.spinnerStopCut);
-		spinCutOff.setEnabled(false);
-		
 		RadioGroup action = (RadioGroup) findViewById(R.id.radioGroupAction);
 		int numberOfChilds = action.getChildCount();
 		for(int i = 0;i < numberOfChilds;i++){
@@ -382,14 +349,6 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 			time.getChildAt(i).setEnabled(false);
 		}
 		
-		/*
-		RadioGroup action = (RadioGroup) findViewById(R.id.radioGroupAction);
-		action.setEnabled(false);
-		RadioGroup user = (RadioGroup) findViewById(R.id.radioGroupUser);
-		user.setEnabled(false);
-		RadioGroup time = (RadioGroup) findViewById(R.id.radioGroupTime);
-		time.setEnabled(false);
-		*/
 	}
 	
 	// Finished recording screen. Turns everything off except the save/erase data buttons and the
@@ -415,15 +374,15 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		Button eraseData = (Button) findViewById(R.id.buttonDeleteData);
 		eraseData.setEnabled(true);
 		
-		Spinner spinDelay = (Spinner) findViewById(R.id.spinnerStartDelay);
-		spinDelay.setEnabled(false);
-		Spinner spinCutOff = (Spinner) findViewById(R.id.spinnerStopCut);
-		spinCutOff.setEnabled(false);
-		
 		RadioGroup action = (RadioGroup) findViewById(R.id.radioGroupAction);
 		int numberOfChilds = action.getChildCount();
 		for(int i = 0;i < numberOfChilds;i++){
 			action.getChildAt(i).setEnabled(true);
+			if(i == 3 || i == 4)
+			{
+				action.getChildAt(i).setEnabled(false);
+				
+			}
 		}
 		RadioGroup user = (RadioGroup) findViewById(R.id.radioGroupUser);
 		numberOfChilds = user.getChildCount();
@@ -435,14 +394,7 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		for(int i = 0;i < numberOfChilds;i++){
 			time.getChildAt(i).setEnabled(false);
 		}
-		/*
-		RadioGroup action = (RadioGroup) findViewById(R.id.radioGroupAction);
-		action.setEnabled(true);
-		RadioGroup user = (RadioGroup) findViewById(R.id.radioGroupUser);
-		user.setEnabled(true);
-		RadioGroup time = (RadioGroup) findViewById(R.id.radioGroupTime);
-		time.setEnabled(false);
-		*/
+		
 	}
 	
 	// Saving data screen. Everything off. Used while initializing program or saving data.
@@ -468,15 +420,11 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		Button eraseData = (Button) findViewById(R.id.buttonDeleteData);
 		eraseData.setEnabled(false);
 		
-		Spinner spinDelay = (Spinner) findViewById(R.id.spinnerStartDelay);
-		spinDelay.setEnabled(false);
-		Spinner spinCutOff = (Spinner) findViewById(R.id.spinnerStopCut);
-		spinCutOff.setEnabled(false);
-		
 		RadioGroup action = (RadioGroup) findViewById(R.id.radioGroupAction);
 		int numberOfChilds = action.getChildCount();
 		for(int i = 0;i < numberOfChilds;i++){
 			action.getChildAt(i).setEnabled(false);
+			
 		}
 		RadioGroup user = (RadioGroup) findViewById(R.id.radioGroupUser);
 		numberOfChilds = user.getChildCount();
@@ -489,18 +437,10 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 			time.getChildAt(i).setEnabled(false);
 		}
 		
-		/*
-		RadioGroup action = (RadioGroup) findViewById(R.id.radioGroupAction);
-		action.setEnabled(false);
-		RadioGroup user = (RadioGroup) findViewById(R.id.radioGroupUser);
-		user.setEnabled(false);
-		RadioGroup time = (RadioGroup) findViewById(R.id.radioGroupTime);
-		time.setEnabled(false);
-		*/
 	}
 	
 	
-	// Need to see if this can be done. Ask teacher.
+	// Need to see if this can be done. Check it out, if I have time.
 	public void enableDisableButtons(boolean enableOrDisable, Button[] buttons){
 		for(Button s : buttons) {
 			s.setEnabled(enableOrDisable);
@@ -516,12 +456,6 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		
 		recordingScreen("About to start recording. put phone in pocket...");  // Go to recording screen.
 		
-		// spinnerStartTime holds the delay in seconds before starting to record. 
-		// This delay is used on the timer as a delay.
-		// THIS HAS BEEN CHANGED TO A GLOBAL VARIABLE. It changes the value when the spinner is changed.
-		//Spinner delaySpinner = (Spinner) findViewById(R.id.spinnerStartDelay);
-		//int timeToStart = Integer.parseInt(delaySpinner.getSelectedItem().toString());
-		
 		// Instantiate the list that will hold the data.
 		data = new ArrayList<String>();
 		
@@ -531,8 +465,6 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		// This should be done later since
 		// working with the data is easier without the header.
 		data.add("timestamp,x,y,z,activity_label");
-		
-		
 		
 		running = true;
 		stopButtonUsed = false;
@@ -592,20 +524,20 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 				  }
 				  if(!stopButtonUsed)
 				  {
-					  
-				  // Ask teacher if there is any better way to do this.
-				  Runnable changeToFinishedRecording = new Runnable() {
-				        @Override
-				        public void run() {
-				        	finishedRecordingScreen("Finished recording. Data in buffer. Save or erase?");
-				        }
-				    };
-				    runOnUiThread(changeToFinishedRecording);
+					  // Update the GUI within this timer.
+					  // Is there any better way to do this?
+					  Runnable changeToFinishedRecording = new Runnable() {
+						  @Override
+						  public void run() {
+							  finishedRecordingScreen("Finished recording. Data in buffer. Save or erase?");
+						  }
+					  };
+					  runOnUiThread(changeToFinishedRecording);
 				  }
 				  else
 				  {
-					  
-					// Ask teacher if there is any better way to do this.
+					  // Update the GUI within this timer.
+					  // Is there any better way to do this?
 					  Runnable changeToFinishedRecording = new Runnable() {
 					        @Override
 					        public void run() {
@@ -616,6 +548,8 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 					    runOnUiThread(changeToFinishedRecording);
 				  }
 				  
+				  // Unregister the sensor to preserve power. No need to keep it registered when the 
+				  // application is not recording.
 				  mSensorManager.unregisterListener(sensorMonitor);
 				  
 				  
@@ -643,7 +577,6 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		vib.vibrate(50);
 	}
 	
-	/*
 	public void saveDataButtonClicked(View view) throws IOException {
 		
 		Log.v(buttonTag,"Save data clicked");
@@ -651,97 +584,18 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		savingDataScreen("Data is being SAVED TO DISK and you probably won't even see this message. Blabla.");
 		
 		Date now = new Date();
+		
+		String nameOfFile =  numberOfSecondsToCollectData+"_"+dataUser+action+"_"+dateFormatFileName.format(now);
+		//String nameOfFile = numberOfSecondsToCollectData+dataUser+action+dateFormatFileName.format(now);
 
-		String nameOfFile = numberOfSecondsToCollectData+dataUser+action+dateFormatFileName.format(now);
-		//String nameOfFile = "sid";
 		Log.v(buttonTag,"path: "+nameOfFile);
-		//String fpathInternal = Environment.getDownloadCacheDirectory().getAbsolutePath()+"/activityrecorder"+nameOfFile+".txt";
+		
+		// Create a path to the file to be used when the recording is saved to the phone.
 		String fpathExternal = Environment.getExternalStorageDirectory().getAbsolutePath()+"/ActivityRecorder/"+nameOfFile+".txt";
-		
-		File logFile = new File(fpathExternal);
-		if (!logFile.exists()) {
-			try
-			{
-				logFile.createNewFile();
-		    } 
-		    catch (IOException e)
-		    {
-		         
-		    	e.printStackTrace();
-		    }
-		}
-		//Simmis saving method
-		BufferedWriter buf = null;
-		
-		// Daniels saving method
-		//FileOutputStream fOut = openFileOutput(fpath,MODE_WORLD_READABLE);
-		//OutputStreamWriter osw = new OutputStreamWriter(fOut);
-		List<String> temp = new ArrayList<String>();
-		
-		temp.add("20:20:20,10.0,10.0,40.0");
-		temp.add("20:20:20,20.0,30.0,50.0");
-		temp.add("20:20:20,30.0,50.0,80.0");
-		temp.add("20:20:20,40.0,40.0,60.0");
-		temp.add("20:20:20,50.0,90.0,40.0");
-		temp.add("20:20:20,40.0,80.0,20.0");
-		temp.add("20:20:20,50.0,50.0,60.0");
-		temp.add("20:20:20,30.0,20.0,40.0");
-		temp.add("20:20:20,60.0,60.0,10.0");
-		temp.add("20:20:20,10.0,50.0,50.0");
-		temp.add("20:20:20,70.0,10.0,90.0");
-		
-		List<String> gaussian = gaussianFilter(temp,new int[] {1,4,6,4,1});
-		
-		try{
-			buf = new BufferedWriter(new FileWriter(logFile,true));
-		}
-		catch(IOException ioe) {
-			ioe.printStackTrace();
-		}
-		
-		if(gaussian != null)
-		{
-			for(int i = 0; i < gaussian.size();i++)
-			{
-				Log.v(printDataTag,gaussian.get(i).toString());
-				//Log.v(printDataTag,data.get(i).toString());
-				//osw.write(data.get(i).toString());
-				//osw.write("\n");
-				buf.append(gaussian.get(i).toString());
-				//buf.append(data.get(i).toString());
-				buf.append("\n");
-			}	
-			Log.v(printDataTag,"Size of data: "+gaussian.size());
-		}
-		
-		buf.close();
-		initialScreen("Data saved to: "+fpathExternal+" Ready for another go..");
-		/*
-		if(!data.isEmpty())
-		{
-			data.clear();
-		}
-		
-		// Daniels saving method
-		//osw.flush();
-		//osw.close();
-	}*/
-	
-	public void saveDataButtonClicked(View view) throws IOException {
-		
-		Log.v(buttonTag,"Save data clicked");
-		
-		savingDataScreen("Data is being SAVED TO DISK and you probably won't even see this message. Blabla.");
-		
-		Date now = new Date();
-
-		String nameOfFile = numberOfSecondsToCollectData+dataUser+action+dateFormatFileName.format(now);
-		//String nameOfFile = "sid";
-		Log.v(buttonTag,"path: "+nameOfFile);
-		//String fpathInternal = Environment.getDownloadCacheDirectory().getAbsolutePath()+"/activityrecorder"+nameOfFile+".txt";
-		String fpathExternal = Environment.getExternalStorageDirectory().getAbsolutePath()+"/ActivityRecorder/"+nameOfFile+".txt";
+		// Create a path to the file to be used when the recording is saved to the phone. For the original file.
 		String fpathExternalOriginal = Environment.getExternalStorageDirectory().getAbsolutePath()+"/ActivityRecorder/"+"O"+nameOfFile+".txt";
 		
+		// Check if the file exists. If it does not exist then I need to create it. Both files.
 		File logFile = new File(fpathExternal);
 		File logFileOriginal = new File(fpathExternalOriginal);
 		if (!logFile.exists()) {
@@ -768,9 +622,11 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		    }
 		}
 		
+		// Process the raw data. I apply a gaussian filter to the data. Using excel I figured out that this was 
+		// a good filter and it smoothed our data sufficiently.
 		List<String> processedData = gaussianFilter(data,new int[]{1,4,7,10,15,21,28,32,40,32,28,21,15,10,7,4,1});
 		
-		//Simmis saving method
+		// Buffered writers to write the data to a file.
 		BufferedWriter buf = null;
 		BufferedWriter bufOriginal = null;
 		
@@ -783,6 +639,8 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 			ioe.printStackTrace();
 		}
 		
+		
+		// Write the processed data to a file.
 		if(processedData != null)
 		{
 			for(int i = 0; i < processedData.size();i++)
@@ -798,6 +656,7 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 			Log.v(printDataTag,"Size of data: "+processedData.size());
 		}
 		
+		// Write the unprocessed data to a file.  Raw data from the accelerometer.
 		if(data != null)
 		{
 			for(int i = 0; i < data.size();i++)
@@ -813,10 +672,13 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 			Log.v(printDataTag,"Size of data: "+data.size());
 		}
 		
+		// Close the buffered writers.
 		buf.close();
 		bufOriginal.close();
+		
 		initialScreen("Data saved to: "+fpathExternal+" Ready for another go..");
 		
+		// Clear the data.
 		if(!data.isEmpty())
 		{
 			data.clear();
@@ -923,6 +785,7 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		savingDataScreen("Data is being UPLOADED and you probably won't even see this message. Blabla.");
 		Date now = new Date();
 		
+		
 		List<String> tempData = new ArrayList<String>();
 		//tempData.add("index,timestamp,x,y,z");
 		int time = 0;
@@ -930,7 +793,7 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		int ys = 0;
 		int zs = 0;
 		int index = 0;
-		for(int i = 0; i < 1; i++)
+		for(int i = 0; i < 3; i++)
 		{
 			tempData.add("13:40:"+time+","+xs+","+ys+","+zs);
 			time++;
@@ -941,12 +804,13 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		}
 		
 		
-		String nameOfFile = numberOfSecondsToCollectData+dataUser+action+dateFormatFileName.format(now);
+		String nameOfFile = numberOfSecondsToCollectData+"_"+dataUser+action+"_"+dateFormatFileName.format(now);
 		//String returnString = "String was never changed. Upload data button clicked.";
 		try {
 			Log.v(uploadDataTag,"name of file: "+nameOfFile);
-			//uploader.uploadList(nameOfFile, tempData, 6);
-			uploader.uploadJson(nameOfFile,tempData);
+			//uploader.uploadList(nameOfFile, tempData);  // Upload dummy data.
+			
+			uploader.uploadJson(nameOfFile,data); // upload the real data.
 			
 		}
 		catch(Exception e) {
@@ -1082,21 +946,6 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		Log.v(buttonTag,"Radio button stairsdown clicked");
 		action = "stairsdown";
 	}
-	
-	// Spinners on click.
-	public void startDelaySpinnerClicked(View view) {
-		//Log.v(buttonTag,"Start delay spinner clicked");
-		Spinner delaySpinner = (Spinner) findViewById(R.id.spinnerStartDelay);
-		timeToStart = Integer.parseInt(delaySpinner.getSelectedItem().toString());
-		Log.v(buttonTag,"Start delay spinner clicked. Spinner value: "+timeToStart);
-	}
-	
-	public void sampleRateSpinnerClicked(View view) {
-		//Log.v(buttonTag,"Start delay spinner clicked");
-		//Spinner delaySpinner = (Spinner) findViewById(R.id.spinnerStartDelay);
-		//timeToStart = Integer.parseInt(delaySpinner.getSelectedItem().toString());
-		//Log.v(buttonTag,"Start delay spinner clicked. Spinner value: "+timeToStart);
-	}
 
 	@Override
 	public void onItemSelected(AdapterView<?> parent, View arg1, int pos,
@@ -1109,5 +958,14 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 	public void onNothingSelected(AdapterView<?> arg0) {
 		// TODO Auto-generated method stub
 		
+	}
+	
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+	    if (keyCode == KeyEvent.KEYCODE_BACK && running) {
+	        
+	        return true;
+	    }
+	    return super.onKeyDown(keyCode, event);
 	}
 }

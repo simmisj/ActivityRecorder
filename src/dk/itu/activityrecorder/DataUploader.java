@@ -1,8 +1,13 @@
 package dk.itu.activityrecorder;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -49,19 +54,27 @@ public class DataUploader {
 		
 		try {
 			JSONObject obj = new JSONObject();
-			JSONArray array = new JSONArray();
+			
+			List<LinkedHashMap> list = new ArrayList<LinkedHashMap>();
+			int index = 0;
 			for (String s : data) {
+				list.add(new LinkedHashMap());
 				String[] spli = s.split(",");
 				
-				array.add(s);
+				list.get(index).put("timestamp", spli[0]);
+				list.get(index).put("x",spli[1]);
+				list.get(index).put("y", spli[2]);
+				list.get(index).put("z", spli[3]);
+				list.get(index).put("activity", spli[4]);
 				/*
 				obj.put("timestamp", spli[0]);
 				obj.put("x",spli[1]);
 				obj.put("y", spli[2]);
 				obj.put("z", spli[3]);
 				*/
+				index++;
 			}
-			obj.put("measures", array);
+			obj.put("data", list);
 			
 			//receiveJson(obj.toString());
 			Log.v(dataUploaderTag, "Json string: "+obj.toJSONString());
@@ -115,7 +128,65 @@ public class DataUploader {
 
 		@Override
 		protected Integer doInBackground(String... arg0) {
+			String nameOfRecord = arg0[0];
+			
+			String data = arg0[1];
+			
+			
+			//String server = "10.25.253.124:8888";
+			String server = "ma3gae.appspot.com";
+			URL url = null;
+			 DataInputStream input = null;
+			 String str = "";
+			try {
+				 url = new URL("http://" + server + "/mandatoryassignment3_gae");
+				 HttpURLConnection urlConn = (HttpURLConnection) url.openConnection();
+				 // Let the run-time system (RTS) know that we want input.
+				 urlConn.setDoInput (true);
+				 // Let the RTS know that we want to do output.
+				 urlConn.setDoOutput (true);
+				 // No caching, we want the real thing.
+				 urlConn.setUseCaches (false);
+				 urlConn.setRequestMethod("POST");
+				 System.out.println("post request method");
+				 urlConn.connect();
+				 DataOutputStream output = new DataOutputStream(urlConn.getOutputStream());
+				 String content = "nameOfRecord=10_simmis-walking_000000&data=" + data;
+				 output.writeBytes(content);
+				 output.flush();
+				 output.close(); 
+				 
+				 String o = "";
+				 input = new DataInputStream (urlConn.getInputStream());
+				 
+				 while(( o = input.readLine() ) != null)
+				 {
+					str += o;
+					 
+				 }
+				 
+				 System.out.println("response: "+str);
+				 input.close ();
+			}
+			catch(Exception ea)
+			{
+				Log.v(dataUploaderTag,"Exception: "+ea);
+				
+			}
+			finally{
+				try {
+					input.close ();
+					Log.v(dataUploaderTag,"REsponse: "+str);
+				} catch (IOException e) {
+					
+					Log.v(dataUploaderTag,"Exception2: "+e);
+				}
+			}
+			
+			return 0;
+			/*
 			httpClient = new DefaultHttpClient();
+			
 			String nameOfRecord = arg0[0];
 			
 			String data = arg0[1];

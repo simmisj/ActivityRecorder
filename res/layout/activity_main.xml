@@ -43,20 +43,6 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content" >
-
-            <Spinner
-                android:id="@+id/spinnerStartDelay"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:entries="@array/timeDelayArray" />
-
-            <Spinner
-                android:id="@+id/spinnerStopCut"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:entries="@array/timeDelayArray" />
         </LinearLayout>
 
         <Space
@@ -231,19 +217,13 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical" >
 
-                    <Spinner
-                        android:id="@+id/spinnerSampleRate"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:entries="@array/sampleRate"
-                        android:prompt="@string/spinnerSampleRate" />
-
                     <Button
                         android:id="@+id/buttonTestSound"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:onClick="buttonTestSoundClicked"
-                        android:text="@string/testSoundButton" />
+                        android:text="@string/testSoundButton"
+                        android:textSize="15sp" />
 
                 </LinearLayout>
             </RadioGroup>
