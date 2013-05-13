@@ -1,8 +1,10 @@
 package dk.itu.activityrecorder;
 
+import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -25,8 +27,11 @@ import org.json.simple.parser.ParseException;
 
 
 
+import android.app.Activity;
+import android.app.Dialog;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.Toast;
 
 public class DataUploader {
 
@@ -40,8 +45,11 @@ public class DataUploader {
 	// private List<String> listToUpload;
 	// private int numberOfValues = 4;
 
-	public DataUploader(String uri) {
+	Activity activity;
+	
+	public DataUploader(String uri,Activity a) {
 
+		activity = a;
 		try {
 			httpPost = new HttpPost(uri);
 		} catch (IllegalArgumentException iae) {
@@ -124,20 +132,26 @@ public class DataUploader {
 		Log.v(dataUploaderTag, "Execute started..");
 	}
 
-	private class Post extends AsyncTask<String, Integer, Integer> {
+	private class Post extends AsyncTask<String, Integer, String> {
 
 		@Override
-		protected Integer doInBackground(String... arg0) {
+		protected String doInBackground(String... arg0) {
+			String result = "";
 			String nameOfRecord = arg0[0];
 			
 			String data = arg0[1];
 			
 			
 			//String server = "10.25.253.124:8888";
-			String server = "ma3gae.appspot.com";
+			//String server = "ma3gaev1-0.appspot.com";
+			String server = "maegaev2.appspot.com";
+			//String server2 = "http://ma3gae.appspot.com/mandatoryassignment3_gae";
 			URL url = null;
-			 DataInputStream input = null;
-			 String str = "";
+			
+			//BufferedReader input = null;
+			DataOutputStream output = null;
+			DataInputStream input = null;
+			String str = "";
 			try {
 				 url = new URL("http://" + server + "/mandatoryassignment3_gae");
 				 HttpURLConnection urlConn = (HttpURLConnection) url.openConnection();
@@ -150,40 +164,58 @@ public class DataUploader {
 				 urlConn.setRequestMethod("POST");
 				 System.out.println("post request method");
 				 urlConn.connect();
-				 DataOutputStream output = new DataOutputStream(urlConn.getOutputStream());
-				 String content = "nameOfRecord=10_simmis-walking_000000&data=" + data;
+				 output = new DataOutputStream(urlConn.getOutputStream());
+				 String content = "nameOfRecord="+nameOfRecord+"&data=" + data;
+				 //String content = "nameOfRecord=10_simmis-walking_000000&data=" + data;
 				 output.writeBytes(content);
-				 output.flush();
-				 output.close(); 
+				 
 				 
 				 String o = "";
-				 input = new DataInputStream (urlConn.getInputStream());
-				 
-				 while(( o = input.readLine() ) != null)
+				 input = new DataInputStream(urlConn.getInputStream());
+				// input = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
+				 while(( o = input.readLine()) != null)
 				 {
 					str += o;
 					 
 				 }
 				 
 				 System.out.println("response: "+str);
-				 input.close ();
+				 input.close();
+				 
+				 output.flush();
+				 output.close(); 
+				 result = "Success";
 			}
 			catch(Exception ea)
 			{
-				Log.v(dataUploaderTag,"Exception: "+ea);
-				
-			}
+				Log.v(dataUploaderTag,"Exception123: "+ea);
+				result = "Exception123";
+			}/*
 			finally{
 				try {
-					input.close ();
-					Log.v(dataUploaderTag,"REsponse: "+str);
+					output.flush();
+					output.close(); 
+					Log.v(dataUploaderTag,"Output flushed and closed. ");
+				} catch (IOException e1) {
+					Log.v(dataUploaderTag,"Exception e1: "+e1);
+				}
+				
+				
+				try {
+					
+					//input.close ();
+					Log.v(dataUploaderTag,"Input closed. ");
+					
 				} catch (IOException e) {
 					
 					Log.v(dataUploaderTag,"Exception2: "+e);
 				}
+				
+				Log.v(dataUploaderTag,"Response: "+str);
 			}
-			
-			return 0;
+			*/
+			publishProgress(0);
+			return result;
 			/*
 			httpClient = new DefaultHttpClient();
 			
@@ -256,78 +288,20 @@ public class DataUploader {
 			 */
 
 		}
-
+		@Override
 		protected void onProgressUpdate(Integer... progress) {
-
+			Log.v(dataUploaderTag,"Progress update.");
 		}
-
+		@Override
 		protected void onPostExecute(String result) {
-
+			Log.v(dataUploaderTag,"Async finished. "+result);
+			//Toast.makeText("Accelerometer found and registered.", Toast.LENGTH_SHORT).show();
+			Toast.makeText(activity,"Async finished!", Toast.LENGTH_SHORT).show();
 		}
 
 	}
 
-	/*
-	 * public String uploadList(String nameOfRecord, List<String>
-	 * listToUpload,int numberOfValues){
-	 * 
-	 * int index = 0; List<NameValuePair> nameValuePairs;
-	 * 
-	 * for(String line : listToUpload){ String[] splitLine = line.split(","); //
-	 * The following process can be made dynamic by using the length of
-	 * splitLine as // the numberOfValues and fetching the header of the file
-	 * (line 0 in listToUpload). // Then use the header to indicate the name of
-	 * a value in another loop. Later.. nameValuePairs = new
-	 * ArrayList<NameValuePair>(numberOfValues);
-	 * 
-	 * 
-	 * nameValuePairs.add(new BasicNameValuePair("nameOfRecord",nameOfRecord));
-	 * nameValuePairs.add(new BasicNameValuePair("timeStamp",splitLine[0]));
-	 * nameValuePairs.add(new BasicNameValuePair("x",splitLine[1]));
-	 * nameValuePairs.add(new BasicNameValuePair("y",splitLine[2]));
-	 * nameValuePairs.add(new BasicNameValuePair("z",splitLine[3]));
-	 * 
-	 * // Execute HTTP Post Request try { httpPost.setEntity(new
-	 * UrlEncodedFormEntity(nameValuePairs)); HttpResponse response =
-	 * httpClient.execute(httpPost);
-	 * Log.v(dataUploaderTag,"Status line: "+response.getStatusLine()); } catch
-	 * (ClientProtocolException e) { e.printStackTrace(); return
-	 * "Exception: ClientProtocolException"; } catch (IOException e) {
-	 * e.printStackTrace(); return "Exception: IOException"; } index++;
-	 * 
-	 * }
-	 * 
-	 * return "Upload complete: "+index+" lines uploaded."; }
-	 * 
-	 * private class Post extends AsyncTask<String,Void, Void> {
-	 * 
-	 * @Override protected Void doInBackground(String... arg0) { // TODO
-	 * Auto-generated method stub try {
-	 * 
-	 * // Add your data List<NameValuePair> nameValuePairs = new
-	 * ArrayList<NameValuePair>(6); nameValuePairs.add(new
-	 * BasicNameValuePair("kodi",arg0[0])); nameValuePairs.add(new
-	 * BasicNameValuePair("longitude",arg0[1])); nameValuePairs.add(new
-	 * BasicNameValuePair("latitude", arg0[2])); nameValuePairs.add(new
-	 * BasicNameValuePair("x",arg0[3])); nameValuePairs.add(new
-	 * BasicNameValuePair("y",arg0[4])); nameValuePairs.add(new
-	 * BasicNameValuePair("z",arg0[5])); httpPost.setEntity(new
-	 * UrlEncodedFormEntity(nameValuePairs));
-	 * 
-	 * 
-	 * // Execute HTTP Post Request HttpResponse response =
-	 * httpClient.execute(httpPost);
-	 * 
-	 * Log.v(dataUploaderTag,"Status line: "+response.getStatusLine());
-	 * Log.v(dataUploaderTag,
-	 * "Log successful. Check http://pervasivelecture10simmi.appspot.com/activitytracker"
-	 * ); //Log.v(locationLogTag,response.toString());
-	 * 
-	 * } catch (ClientProtocolException e) { // TODO Auto-generated catch block
-	 * Log.v(dataUploaderTag, e.toString()); } catch (IOException e) { // TODO
-	 * Auto-generated catch block Log.v(dataUploaderTag, e.toString()); }
-	 * catch(Exception e){
-	 * 
-	 * Log.v(dataUploaderTag, e.toString()); } return null; } }
-	 */
+	
+	
+	
 }

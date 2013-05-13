@@ -137,8 +137,8 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		
 		Log.v(lifeCycleTag,"OnCreate started");
 		
-		uploader = new DataUploader("10.25.253.124:8888/mandatoryassignment3_gae");
-		//uploader = new DataUploader("http://ma3gae.appspot.com/mandatoryassignment3_gae");
+		//uploader = new DataUploader("10.25.253.124:8888/mandatoryassignment3_gae");
+		uploader = new DataUploader("http://ma3gae.appspot.com/mandatoryassignment3_gae",MainActivity.this);
 		//uploader = new DataUploader("http://ma3tester.appspot.com/ma3tester");
 		
 		// Create the media players for the alarms. Beep short for when I start recording and
@@ -284,7 +284,7 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		Button saveData = (Button) findViewById(R.id.buttonSaveData);
 		saveData.setEnabled(false);
 		Button uploadData = (Button) findViewById(R.id.buttonUploadData);
-		uploadData.setEnabled(true);
+		uploadData.setEnabled(false);
 		Button eraseData = (Button) findViewById(R.id.buttonDeleteData);
 		eraseData.setEnabled(false);
 		
@@ -807,7 +807,7 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		String nameOfFile = numberOfSecondsToCollectData+"_"+dataUser+action+"_"+dateFormatFileName.format(now);
 		//String returnString = "String was never changed. Upload data button clicked.";
 		try {
-			Log.v(uploadDataTag,"name of file: "+nameOfFile);
+			Log.v(uploadDataTag,"name of file: " + nameOfFile);
 			//uploader.uploadList(nameOfFile, tempData);  // Upload dummy data.
 			
 			uploader.uploadJson(nameOfFile,data); // upload the real data.
@@ -818,7 +818,9 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 			initialScreen("Exception in uploading..");
 		}
 		Log.v(uploadDataTag,"Upload finished.");
-		initialScreen("Upload finished.");
+		
+		initialScreen("Upload finished.");  // I WILL TRY TO DO THIS IN THE ASYNCTASK IN UPLOADER.
+		
 		/*
 		if(returnString.equals("Exception: ClientProtocolException")){
 			Log.v(uploadDataTag,"Exception: ClientProtocolException");
