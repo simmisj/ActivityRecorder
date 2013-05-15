@@ -60,26 +60,33 @@ public class DataUploader {
 
 	public void uploadJson(String nameOfFile, List<String> data) {
 		
+		 
+		List<String> sendList = new ArrayList<String>();
+		sendList.addAll(data);
+		
+		sendList.remove(0);
 		try {
 			JSONObject obj = new JSONObject();
 			
 			List<LinkedHashMap> list = new ArrayList<LinkedHashMap>();
 			int index = 0;
-			for (String s : data) {
-				list.add(new LinkedHashMap());
-				String[] spli = s.split(",");
+			for (String s : sendList) {
 				
-				list.get(index).put("timestamp", spli[0]);
-				list.get(index).put("x",spli[1]);
-				list.get(index).put("y", spli[2]);
-				list.get(index).put("z", spli[3]);
-				list.get(index).put("activity", spli[4]);
+					list.add(new LinkedHashMap());
+					String[] spli = s.split(",");
+				
+					list.get(index).put("timestamp", spli[0]);
+					list.get(index).put("x",spli[1]);
+					list.get(index).put("y", spli[2]);
+					list.get(index).put("z", spli[3]);
+					list.get(index).put("activity", spli[4]);
 				/*
 				obj.put("timestamp", spli[0]);
 				obj.put("x",spli[1]);
 				obj.put("y", spli[2]);
 				obj.put("z", spli[3]);
 				*/
+				
 				index++;
 			}
 			obj.put("data", list);
@@ -143,8 +150,8 @@ public class DataUploader {
 			
 			
 			//String server = "10.25.253.124:8888";
-			//String server = "ma3gaev1-0.appspot.com";
-			String server = "maegaev2.appspot.com";
+			String server = "ma3gaev1-0.appspot.com";
+			//String server = "maegaev2.appspot.com";
 			//String server2 = "http://ma3gae.appspot.com/mandatoryassignment3_gae";
 			URL url = null;
 			

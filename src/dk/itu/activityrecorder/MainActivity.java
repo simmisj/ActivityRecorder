@@ -292,7 +292,8 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		int numberOfChilds = action.getChildCount();
 		for(int i = 0;i < numberOfChilds;i++){
 			action.getChildAt(i).setEnabled(true);
-			if(i == 3 || i == 4)
+			// i = 0 = walking radio button, 1 = sitting, 2 = stairsup, 3 = stairsdown, 4 = running, 5 = jumping
+			if(i == 3 )
 			{
 				action.getChildAt(i).setEnabled(false);
 				
@@ -377,8 +378,9 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		RadioGroup action = (RadioGroup) findViewById(R.id.radioGroupAction);
 		int numberOfChilds = action.getChildCount();
 		for(int i = 0;i < numberOfChilds;i++){
+			// i = 0 = walking radio button, 1 = sitting, 2 = stairsup, 3 = stairsdown, 4 = running, 5 = jumping
 			action.getChildAt(i).setEnabled(true);
-			if(i == 3 || i == 4)
+			if(i == 3 )
 			{
 				action.getChildAt(i).setEnabled(false);
 				
@@ -464,7 +466,7 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		// it when plotting it in excel. 
 		// This should be done later since
 		// working with the data is easier without the header.
-		data.add("timestamp,x,y,z,activity_label");
+		data.add("timestamp,x,y,z,activityLALA2");
 		
 		running = true;
 		stopButtonUsed = false;
@@ -594,6 +596,7 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		String fpathExternal = Environment.getExternalStorageDirectory().getAbsolutePath()+"/ActivityRecorder/"+nameOfFile+".txt";
 		// Create a path to the file to be used when the recording is saved to the phone. For the original file.
 		String fpathExternalOriginal = Environment.getExternalStorageDirectory().getAbsolutePath()+"/ActivityRecorder/"+"O"+nameOfFile+".txt";
+		
 		
 		// Check if the file exists. If it does not exist then I need to create it. Both files.
 		File logFile = new File(fpathExternal);
@@ -729,7 +732,7 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		float[] yGaussian = applyGaussianFilter(y, weights);
 		float[] zGaussian = applyGaussianFilter(z, weights);
 		
-		temp.add("timestamp,x,y,z,activity_label");
+		temp.add("timestamp,x,y,z,activity_labelLALA");
 		
 		for(int e = 0; e < listToWorkWith.size(); e++){
 			String h = timestamp[e]+","+xGaussian[e]+","+yGaussian[e]+","+zGaussian[e]+","+activity_label[e];
@@ -785,7 +788,7 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		savingDataScreen("Data is being UPLOADED and you probably won't even see this message. Blabla.");
 		Date now = new Date();
 		
-		
+		/*
 		List<String> tempData = new ArrayList<String>();
 		//tempData.add("index,timestamp,x,y,z");
 		int time = 0;
@@ -802,15 +805,20 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 			zs += ys - 2;
 			index++;
 		}
-		
+		*/
 		
 		String nameOfFile = numberOfSecondsToCollectData+"_"+dataUser+action+"_"+dateFormatFileName.format(now);
+		
+		// Process the raw data. I apply a gaussian filter to the data. Using excel I figured out that this was 
+		// a good filter and it smoothed our data sufficiently.
+		List<String> processedData = gaussianFilter(data,new int[]{1,4,7,10,15,21,28,32,40,32,28,21,15,10,7,4,1});
+		
 		//String returnString = "String was never changed. Upload data button clicked.";
 		try {
 			Log.v(uploadDataTag,"name of file: " + nameOfFile);
 			//uploader.uploadList(nameOfFile, tempData);  // Upload dummy data.
 			
-			uploader.uploadJson(nameOfFile,data); // upload the real data.
+			uploader.uploadJson(nameOfFile,processedData); // upload the real data.
 			
 		}
 		catch(Exception e) {
