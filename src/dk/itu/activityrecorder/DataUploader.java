@@ -138,7 +138,8 @@ public class DataUploader {
 			
 			
 			//String server = "10.25.253.124:8888";
-			String server = "ma3gaev1-0.appspot.com";
+			//String server = "ma3gaev1-0.appspot.com";
+			String server = "ma3gae-v2.appspot.com";  //  NEWEST use for demo
 			//String server = "maegaev2.appspot.com";
 			//String server2 = "http://ma3gae.appspot.com/mandatoryassignment3_gae";
 			URL url = null;
