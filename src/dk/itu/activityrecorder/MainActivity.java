@@ -138,7 +138,8 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		Log.v(lifeCycleTag,"OnCreate started");
 		
 		//uploader = new DataUploader("10.25.253.124:8888/mandatoryassignment3_gae");
-		uploader = new DataUploader("http://ma3gae.appspot.com/mandatoryassignment3_gae",MainActivity.this);
+		//uploader = new DataUploader("http://ma3gae.appspot.com/mandatoryassignment3_gae",MainActivity.this);
+		uploader = new DataUploader("http://ma3gaev1-0.appspot.com/mandatoryassignment3_gaeblob",MainActivity.this);
 		//uploader = new DataUploader("http://ma3tester.appspot.com/ma3tester");
 		
 		// Create the media players for the alarms. Beep short for when I start recording and
@@ -511,19 +512,21 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 				            
 				        }
 					  
-					  if(numberOfEntries >=( numberOfSecondsToCollectData * FRAMES_PER_SECOND) ) {
+					  if(numberOfEntries >=( numberOfSecondsToCollectData * FRAMES_PER_SECOND) && numberOfSecondsToCollectData != -1) {
 					  //if(date.getTime() > timeStarted.getTime()+(numberOfSecondsToCollectData*1000) && numberOfEntries >=( numberOfSecondsToCollectData * FRAMES_PER_SECOND)  ) {
 						  running = false;
 						  // Even though data has been recorded I still do not use the vibration to
 						  // indicate that the data has been recorded. I do not have the time to test
 						  // if it affects the data or not. Just play a sound instead.
 						  //vib.vibrate(150);
-						  beepAlarm.start();
+						 
+						  // beepAlarm.start();
 						  
 					  }
 					  
 					 
 				  }
+				  beepAlarm.start();
 				  if(!stopButtonUsed)
 				  {
 					  // Update the GUI within this timer.
@@ -531,10 +534,23 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 					  Runnable changeToFinishedRecording = new Runnable() {
 						  @Override
 						  public void run() {
-							  finishedRecordingScreen("Finished recording. Data in buffer. Save or erase?");
+							  finishedRecordingScreen("Finished recording. Data in buffer. Save,upload or erase?");
 						  }
 					  };
 					  runOnUiThread(changeToFinishedRecording);
+				  }
+				  else if(numberOfSecondsToCollectData == -1)
+				  {
+					  // Update the GUI within this timer.
+					  // Is there any better way to do this?
+					  Runnable changeToFinishedRecording = new Runnable() {
+					        @Override
+					        public void run() {
+					        	finishedRecordingScreen("Recording was stopped by user. (custom length) Data in buffer. Save, upload or erase?");
+					        	
+					        }
+					    };
+					    runOnUiThread(changeToFinishedRecording);
 				  }
 				  else
 				  {
@@ -592,15 +608,19 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 
 		Log.v(buttonTag,"path: "+nameOfFile);
 		
+		
+		
 		// Create a path to the file to be used when the recording is saved to the phone.
 		String fpathExternal = Environment.getExternalStorageDirectory().getAbsolutePath()+"/ActivityRecorder/"+nameOfFile+".txt";
 		// Create a path to the file to be used when the recording is saved to the phone. For the original file.
 		String fpathExternalOriginal = Environment.getExternalStorageDirectory().getAbsolutePath()+"/ActivityRecorder/"+"O"+nameOfFile+".txt";
-		
+		// Create a path to the file to be used when the recording is saved to the phone. For the time series ARFF file.
+		String fpathExternalTimeSeries = Environment.getExternalStorageDirectory().getAbsolutePath()+"/ActivityRecorder/"+"T"+nameOfFile+".arff";
 		
 		// Check if the file exists. If it does not exist then I need to create it. Both files.
 		File logFile = new File(fpathExternal);
 		File logFileOriginal = new File(fpathExternalOriginal);
+		File logFileTimeSeries = new File(fpathExternalTimeSeries);
 		if (!logFile.exists()) {
 			try
 			{
@@ -625,18 +645,31 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		    }
 		}
 		
+		if (!logFileTimeSeries.exists()) {
+			try
+			{
+				logFileTimeSeries.createNewFile();
+		    } 
+		    catch (IOException e)
+		    {
+		         
+		    	e.printStackTrace();
+		    }
+		}
 		// Process the raw data. I apply a gaussian filter to the data. Using excel I figured out that this was 
 		// a good filter and it smoothed our data sufficiently.
 		List<String> processedData = gaussianFilter(data,new int[]{1,4,7,10,15,21,28,32,40,32,28,21,15,10,7,4,1});
-		
+		// Process the data into a time series data structure. 
+		List<String> timeSeriesData = createDataSeriesAsArff(nameOfFile,processedData,3);
 		// Buffered writers to write the data to a file.
 		BufferedWriter buf = null;
 		BufferedWriter bufOriginal = null;
-		
+		BufferedWriter bufTimeSeries = null;
 		
 		try{
 			buf = new BufferedWriter(new FileWriter(logFile,true));
 			bufOriginal = new BufferedWriter(new FileWriter(logFileOriginal,true));
+			bufTimeSeries = new BufferedWriter(new FileWriter(logFileTimeSeries,true));
 		}
 		catch(IOException ioe) {
 			ioe.printStackTrace();
@@ -675,9 +708,26 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 			Log.v(printDataTag,"Size of data: "+data.size());
 		}
 		
+		// Write the Time series data to a file.  
+		if(timeSeriesData != null)
+		{
+			for(int i = 0; i < timeSeriesData.size();i++)
+			{
+				Log.v(printDataTag,timeSeriesData.get(i).toString());
+				//Log.v(printDataTag,data.get(i).toString());
+				//osw.write(data.get(i).toString());
+				//osw.write("\n");
+				bufTimeSeries.append(timeSeriesData.get(i).toString());
+				//buf.append(data.get(i).toString());
+				bufTimeSeries.append("\n");
+			}	
+			Log.v(printDataTag,"Size of data: "+timeSeriesData.size());
+		}
+		
 		// Close the buffered writers.
 		buf.close();
 		bufOriginal.close();
+		bufTimeSeries.close();
 		
 		initialScreen("Data saved to: "+fpathExternal+" Ready for another go..");
 		
@@ -690,7 +740,10 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		{
 			processedData.clear();
 		}
-		
+		if(!timeSeriesData.isEmpty())
+		{
+			timeSeriesData.clear();
+		}
 	}
 	
 	
@@ -732,7 +785,7 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		float[] yGaussian = applyGaussianFilter(y, weights);
 		float[] zGaussian = applyGaussianFilter(z, weights);
 		
-		temp.add("timestamp,x,y,z,activity_labelLALA");
+		temp.add("timestamp,x,y,z,activity_label");
 		
 		for(int e = 0; e < listToWorkWith.size(); e++){
 			String h = timestamp[e]+","+xGaussian[e]+","+yGaussian[e]+","+zGaussian[e]+","+activity_label[e];
@@ -783,6 +836,77 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 		
 		return temp;
 	}
+	
+	public List<String> createDataSeriesAsArff(String nameoffile, List<String> list, int window)
+	{
+		List<String> listToUse = new ArrayList<String>();
+		listToUse.addAll(list);
+		listToUse.remove(0);
+		
+		
+		List<String> temp = new ArrayList<String>();
+		
+		temp.add("@relation '"+nameoffile+"'");
+		
+		for(int i = 0; i < window; i++){
+			temp.add("@attribute x"+i+" numeric");
+			temp.add("@attribute y"+i+" numeric");
+			temp.add("@attribute z"+i+" numeric");
+		}
+		temp.add("@attribute activity {walking,sitting,stairsup,running,jumping}");
+		temp.add("@data");
+		
+		String firstlines = "";
+		int lineToStartAt = 0;
+		
+		for(int y = 0;y<window;y++){
+			String[] split = listToUse.get(y).split(",");
+			firstlines += split[1]+","+split[2]+","+split[3]+",";
+			
+			if(y == window-1)
+			{
+				firstlines += split[4];
+				
+			}
+			lineToStartAt = y;
+		}
+		
+		temp.add(firstlines);
+		
+		for(int ie = lineToStartAt+1; ie < listToUse.size(); ie++){
+			String line = listToUse.get(ie);
+			String[] split = listToUse.get(ie).split(",");
+			line = split[1]+","+split[2]+","+split[3]+","+split[4];
+			
+			String concatadedString = moveStringToLeft(firstlines, line);
+			temp.add(concatadedString);
+            firstlines = concatadedString;
+		}
+		
+		return temp;
+	}
+	
+	public String moveStringToLeft(String linesToMove, String lineToAdd)
+    {
+        String temp = "";
+
+        String[] split = linesToMove.split(",");
+
+        int index = 0;
+
+        for (String splitstring : split)
+        {
+            if (index > 2 && index < split.length - 1)
+            {
+                temp += splitstring + ",";
+            }
+            index++;
+        }
+
+        temp += lineToAdd;
+
+        return temp;
+    }
 	
 	public void uploadDataButtonClicked(View view){
 		savingDataScreen("Data is being UPLOADED and you probably won't even see this message. Blabla.");
@@ -903,6 +1027,11 @@ public class MainActivity extends Activity implements OnItemSelectedListener {
 	public void radioButton30Clicked(View view) {
 		Log.v(buttonTag,"Radio button 30 clicked");
 		numberOfSecondsToCollectData = 30;
+		
+	}
+	public void radioButtonContinuousClicked(View view) {
+		Log.v(buttonTag,"Radio button continuous clicked");
+		numberOfSecondsToCollectData = -1;
 		
 	}
 	

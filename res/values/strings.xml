@@ -31,6 +31,7 @@
 	<string name="radioButton10">10 secs</string>
 	<string name="radioButton15">15 secs</string>
 	<string name="radioButton30">30 secs</string>
+	<string name="radioButtonContinuous">∞</string>
 	
 	<string name="spinnerSampleRate">Sample rate</string>
 	

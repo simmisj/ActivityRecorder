@@ -41,10 +41,7 @@ public class DataUploader {
 
 	private String dataUploaderTag = "upload";
 
-	// private String nameOfRecord = "";
-	// private List<String> listToUpload;
-	// private int numberOfValues = 4;
-
+	
 	Activity activity;
 	
 	public DataUploader(String uri,Activity a) {
@@ -80,12 +77,7 @@ public class DataUploader {
 					list.get(index).put("y", spli[2]);
 					list.get(index).put("z", spli[3]);
 					list.get(index).put("activity", spli[4]);
-				/*
-				obj.put("timestamp", spli[0]);
-				obj.put("x",spli[1]);
-				obj.put("y", spli[2]);
-				obj.put("z", spli[3]);
-				*/
+				
 				
 				index++;
 			}
@@ -121,11 +113,7 @@ public class DataUploader {
 	
 	public void uploadList(String nameOfRecord, List<String> listToUpload,
 			int numberOfValues) {
-		// int index = 0;
-		// this.nameOfRecord = nameOfRecord;
-		// this.listToUpload = listToUpload;
-		// this.numberOfValues = numberOfValues;
-
+		
 		String data = "";
 
 		Log.v(dataUploaderTag, "Starting execute..");
@@ -160,7 +148,7 @@ public class DataUploader {
 			DataInputStream input = null;
 			String str = "";
 			try {
-				 url = new URL("http://" + server + "/mandatoryassignment3_gae");
+				 url = new URL("http://" + server + "/mandatoryassignment3_gaeblob");
 				 HttpURLConnection urlConn = (HttpURLConnection) url.openConnection();
 				 // Let the run-time system (RTS) know that we want input.
 				 urlConn.setDoInput (true);
@@ -197,31 +185,8 @@ public class DataUploader {
 			{
 				Log.v(dataUploaderTag,"Exception123: "+ea);
 				result = "Exception123";
-			}/*
-			finally{
-				try {
-					output.flush();
-					output.close(); 
-					Log.v(dataUploaderTag,"Output flushed and closed. ");
-				} catch (IOException e1) {
-					Log.v(dataUploaderTag,"Exception e1: "+e1);
-				}
-				
-				
-				try {
-					
-					//input.close ();
-					Log.v(dataUploaderTag,"Input closed. ");
-					
-				} catch (IOException e) {
-					
-					Log.v(dataUploaderTag,"Exception2: "+e);
-				}
-				
-				Log.v(dataUploaderTag,"Response: "+str);
 			}
-			*/
-			publishProgress(0);
+			publishProgress(100);
 			return result;
 			/*
 			httpClient = new DefaultHttpClient();
@@ -297,13 +262,13 @@ public class DataUploader {
 		}
 		@Override
 		protected void onProgressUpdate(Integer... progress) {
-			Log.v(dataUploaderTag,"Progress update.");
+			Log.v(dataUploaderTag,"Progress update. "+progress);
 		}
 		@Override
 		protected void onPostExecute(String result) {
 			Log.v(dataUploaderTag,"Async finished. "+result);
 			//Toast.makeText("Accelerometer found and registered.", Toast.LENGTH_SHORT).show();
-			Toast.makeText(activity,"Async finished!", Toast.LENGTH_SHORT).show();
+			Toast.makeText(activity,"Async finished!" +result, Toast.LENGTH_SHORT).show();
 		}
 
 	}
